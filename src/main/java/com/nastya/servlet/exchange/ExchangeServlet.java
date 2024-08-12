@@ -1,4 +1,4 @@
-package com.nastya.servlets.exchangerate;
+package com.nastya.servlet.exchange;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -8,15 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-@WebServlet("/exchangeRate/{codes}")
-public class ExchangeRateServlet extends HttpServlet{
+@WebServlet("/exchange")
+public class ExchangeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     }
-
-    @Override
-    protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-    }
 }
+

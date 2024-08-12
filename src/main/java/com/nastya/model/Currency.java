@@ -1,16 +1,16 @@
-package com.nastya.models;
+package com.nastya.model;
 
-public class Сurrency {
+public class Currency {
     private int id;
     private String code;
     private String fullName;
     private String sign;
 
 
-    public Сurrency() {
+    public Currency() {
     }
 
-    public Сurrency(int id, String code, String fullName, String sign) {
+    public Currency(int id, String code, String fullName, String sign) {
         this.id = id;
         this.code = code;
         this.fullName = fullName;

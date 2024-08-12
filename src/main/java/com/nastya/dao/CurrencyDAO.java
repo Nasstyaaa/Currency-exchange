@@ -4,97 +4,72 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.nastya.models.Сurrency;
-import com.nastya.dto.CurrencyDTO;
+import com.nastya.exception.CurrencyCodeExistsException;
+import com.nastya.exception.CurrencyNotFoundException;
+import com.nastya.exception.DBErrorException;
+import com.nastya.model.Currency;
+import com.nastya.util.DataSourceUtil;
+import com.nastya.util.CurrencyBuilderUtil;
 
 public class CurrencyDAO {
-    private static final String URL = "jdbc:sqlite:C:\\Users\\Anna\\IdeaProjects\\CurrencyExchange\\currency-exchange.sqlite";
+    public List<Currency> findAll() {
+        List<Currency> currencies = new ArrayList<>();
 
-    private static Connection connection;
+        try (Connection connection = DataSourceUtil.get().getConnection()) {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM currencies");
 
-    static {
-        try {
-            Class.forName("org.sqlite.JDBC");
-        } catch (ClassNotFoundException exception) {
-            exception.printStackTrace();
-        }
+            while (resultSet.next()) {
+                currencies.add(CurrencyBuilderUtil.create(resultSet));
+            }
+            return currencies;
 
-        try {
-            connection = DriverManager.getConnection(URL);
-        } catch (SQLException sqlException) {
-            sqlException.printStackTrace();
+        } catch (SQLException exception) {
+            throw new DBErrorException();
         }
     }
 
 
-    public List<Сurrency> readAll() throws SQLException {
-        List<Сurrency> currencies = new ArrayList<>();
-        Statement statement = connection.createStatement();
-        String SQL = "SELECT * FROM currencies";
-        ResultSet resultSet = statement.executeQuery(SQL);
-
-        while (resultSet.next()) {
-            Сurrency currency = new Сurrency();
-
-            currency.setId(resultSet.getInt("id"));
-            currency.setCode(resultSet.getString("code"));
-            currency.setFullName(resultSet.getString("full_name"));
-            currency.setSign(resultSet.getString("sign"));
-
-            currencies.add(currency);
-        }
-
-        return currencies;
-    }
-
-
-    public Сurrency read(String code) {
-        Сurrency currency = null;
-        try {
+    public Currency find(String code) {
+        try (Connection connection = DataSourceUtil.get().getConnection()) {
             PreparedStatement preparedStatement =
                     connection.prepareStatement("SELECT * FROM currencies WHERE code=?");
 
             preparedStatement.setString(1, code);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            resultSet.next();
 
-            currency = new Сurrency();
-            currency.setId(resultSet.getInt("id"));
-            currency.setCode(resultSet.getString("code"));
-            currency.setFullName(resultSet.getString("full_name"));
-            currency.setSign(resultSet.getString("sign"));
+            if (!resultSet.next()) {
+                throw new CurrencyNotFoundException();
+            }
+            return CurrencyBuilderUtil.create(resultSet);
 
         } catch (SQLException exception) {
-            exception.printStackTrace();
+            throw new DBErrorException();
         }
-        return currency;
     }
 
 
-    public Сurrency create(CurrencyDTO сurrency) throws SQLException {
-        Сurrency addedCurrency = null;
-        PreparedStatement preparedStatement =
-                connection.prepareStatement("INSERT INTO currencies(code, full_name, sign) VALUES (?, ?, ?)");
-        preparedStatement.setString(1, сurrency.getCode());
-        preparedStatement.setString(2, сurrency.getFullName());
-        preparedStatement.setString(3, сurrency.getSign());
+    public Currency save(Currency currency) {
+        try (Connection connection = DataSourceUtil.get().getConnection()) {
+            PreparedStatement preparedStatement = connection.
+                    prepareStatement("INSERT INTO currencies (code, full_name, sign) VALUES (?, ?, ?)");
+            preparedStatement.setString(1, currency.getCode());
+            preparedStatement.setString(2, currency.getFullName());
+            preparedStatement.setString(3, currency.getSign());
 
-        preparedStatement.executeUpdate();
+            preparedStatement.executeUpdate();
 
-        ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
-        generatedKeys.next();
-        addedCurrency = new Сurrency(generatedKeys.getInt(1),
-                сurrency.getCode(), сurrency.getFullName(), сurrency.getSign());
-        return addedCurrency;
-    }
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+            currency.setId(generatedKeys.getInt(1));
 
-    public boolean isExistCode(String code) throws SQLException {
-        PreparedStatement preparedStatement =
-                connection.prepareStatement("SELECT * FROM currencies WHERE code=? LIMIT 1");
+            return currency;
 
-        preparedStatement.setString(1, code);
-        ResultSet resultSet = preparedStatement.executeQuery();
-        return resultSet.next();
+        } catch (SQLException exception) {
+            if (exception.getErrorCode() == 19) {
+                throw new CurrencyCodeExistsException();
+            }
+            throw new DBErrorException();
+        }
     }
 }

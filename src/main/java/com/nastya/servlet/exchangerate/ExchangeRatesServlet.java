@@ -1,4 +1,4 @@
-package com.nastya.servlets.exchangerate;
+package com.nastya.servlet.exchangerate;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
