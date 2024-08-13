@@ -37,7 +37,6 @@ public class CurrencyDAO {
                     connection.prepareStatement("SELECT * FROM currencies WHERE code=?");
 
             preparedStatement.setString(1, code);
-
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()) {
