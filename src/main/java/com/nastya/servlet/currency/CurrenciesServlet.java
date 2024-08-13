@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.nastya.dao.CurrencyDAO;
 import com.nastya.exception.CurrencyCodeExistsException;
 import com.nastya.exception.DBErrorException;
+import com.nastya.exception.MissingFormFieldException;
 import com.nastya.model.Currency;
 import com.nastya.util.ResponseUtil;
 import jakarta.servlet.annotation.WebServlet;
@@ -38,9 +39,7 @@ public class CurrenciesServlet extends HttpServlet {
             String sign = request.getParameter("sign");
 
             if (code == null || code.length() > 3 || fullName == null || sign == null) {
-                ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST,
-                        "The required form field is missing");
-                return;
+                throw new MissingFormFieldException();
             }
 
             Currency createdCurrency = currencyDAO.save(new Currency(0, code, fullName, sign));
@@ -50,6 +49,8 @@ public class CurrenciesServlet extends HttpServlet {
             ResponseUtil.sendException(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception.getMessage());
         } catch (CurrencyCodeExistsException exception) {
             ResponseUtil.sendException(response, HttpServletResponse.SC_CONFLICT, exception.getMessage());
+        }catch (MissingFormFieldException exception){
+            ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST, exception.getMessage());
         }
     }
 }

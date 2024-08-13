@@ -10,7 +10,7 @@ import java.sql.Connection;
 @WebListener
 public class DataSourceUtil implements ServletContextListener {
 
-    private static final String url = "jdbc:sqlite:C:\\Users\\Anna\\IdeaProjects\\CurrencyExchange\\currency-exchange.sqlite";
+    private static final String url = "jdbc:sqlite:C:\\Users\\Anna\\IdeaProjects\\CurrencyExchange\\currency_exchange.sqlite";
     private static final SQLiteDataSource ds = new SQLiteDataSource();
 
     @Override

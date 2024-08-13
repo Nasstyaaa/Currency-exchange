@@ -16,6 +16,7 @@ public class CurrencyDAO {
         List<Currency> currencies = new ArrayList<>();
 
         try (Connection connection = DataSourceUtil.get().getConnection()) {
+
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM currencies");
 
