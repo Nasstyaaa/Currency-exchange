@@ -1,7 +1,10 @@
 package com.nastya.exception;
 
-public class InvalidCurrencyPairException extends RuntimeException{
+import jakarta.servlet.http.HttpServletResponse;
+
+public class InvalidCurrencyPairException extends AppException{
     public InvalidCurrencyPairException(){
-        super("One (or both) currency from the currency pair does not exist in the database");
+        super("One (or both) currency from the currency pair does not exist in the database",
+                HttpServletResponse.SC_NOT_FOUND);
     }
 }

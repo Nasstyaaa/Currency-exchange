@@ -1,10 +1,7 @@
 package com.nastya.servlet.exchangerate;
 
 import com.nastya.dao.ExchangeRatesDAO;
-import com.nastya.exception.DBErrorException;
-import com.nastya.exception.DuplicateCurrencyPairException;
-import com.nastya.exception.InvalidCurrencyPairException;
-import com.nastya.exception.MissingFormFieldException;
+import com.nastya.exception.*;
 import com.nastya.util.ResponseUtil;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,33 +19,27 @@ public class ExchangeRatesServlet extends HttpServlet {
             throws IOException {
         try {
             ResponseUtil.send(response, HttpServletResponse.SC_OK, exchangeRatesDAO.findAll());
-        } catch (DBErrorException exception) {
-            ResponseUtil.sendException(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception.getMessage());
+        } catch (AppException exception) {
+            ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-
         try {
             String baseCode = request.getParameter("baseCurrencyCode");
             String targetCode = request.getParameter("targetCurrencyCode");
-            double rate = Double.parseDouble(request.getParameter("rate"));
+            String rate = request.getParameter("rate");
 
-            if (baseCode == null || targetCode == null || rate == 0 || baseCode.equals(targetCode)){
+            if (baseCode == null || targetCode == null || rate == null || baseCode.equals(targetCode)) {
                 throw new MissingFormFieldException();
             }
 
-            ResponseUtil.send(response, HttpServletResponse.SC_CREATED, exchangeRatesDAO.save(baseCode, targetCode, rate));
-        }catch (DBErrorException exception){
-            ResponseUtil.sendException(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception.getMessage());
-        }catch (InvalidCurrencyPairException exception){
-            ResponseUtil.sendException(response, HttpServletResponse.SC_NOT_FOUND, exception.getMessage());
-        }catch (MissingFormFieldException exception){
-            ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST, exception.getMessage());
-        }catch (DuplicateCurrencyPairException exception){
-            ResponseUtil.sendException(response, HttpServletResponse.SC_CONFLICT, exception.getMessage());
+            ResponseUtil.send(response, HttpServletResponse.SC_CREATED,
+                    exchangeRatesDAO.save(baseCode, targetCode, Double.parseDouble(rate)));
+        } catch (AppException exception) {
+            ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
         }
     }
 }

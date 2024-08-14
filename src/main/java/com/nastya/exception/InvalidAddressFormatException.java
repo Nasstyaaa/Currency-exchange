@@ -1,7 +1,9 @@
 package com.nastya.exception;
 
-public class InvalidAddressFormatException extends RuntimeException{
+import jakarta.servlet.http.HttpServletResponse;
+
+public class InvalidAddressFormatException extends AppException{
     public InvalidAddressFormatException(){
-        super("The currency code is missing from the address");
+        super("The currency code is missing from the address", HttpServletResponse.SC_BAD_REQUEST);
     }
 }

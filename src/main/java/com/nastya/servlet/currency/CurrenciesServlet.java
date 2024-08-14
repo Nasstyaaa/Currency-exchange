@@ -1,10 +1,8 @@
 package com.nastya.servlet.currency;
 
 
-import com.google.gson.Gson;
 import com.nastya.dao.CurrencyDAO;
-import com.nastya.exception.CurrencyCodeExistsException;
-import com.nastya.exception.DBErrorException;
+import com.nastya.exception.AppException;
 import com.nastya.exception.MissingFormFieldException;
 import com.nastya.model.Currency;
 import com.nastya.util.ResponseUtil;
@@ -25,8 +23,8 @@ public class CurrenciesServlet extends HttpServlet {
             throws IOException {
         try {
             ResponseUtil.send(response, HttpServletResponse.SC_OK, currencyDAO.findAll());
-        } catch (DBErrorException exception) {
-            ResponseUtil.sendException(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception.getMessage());
+        } catch (AppException exception) {
+            ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
         }
     }
 
@@ -44,13 +42,8 @@ public class CurrenciesServlet extends HttpServlet {
 
             Currency createdCurrency = currencyDAO.save(new Currency(0, code, fullName, sign));
             ResponseUtil.send(response, HttpServletResponse.SC_CREATED, createdCurrency);
-
-        } catch (DBErrorException exception) {
-            ResponseUtil.sendException(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception.getMessage());
-        } catch (CurrencyCodeExistsException exception) {
-            ResponseUtil.sendException(response, HttpServletResponse.SC_CONFLICT, exception.getMessage());
-        }catch (MissingFormFieldException exception){
-            ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST, exception.getMessage());
+        } catch (AppException exception) {
+            ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
         }
     }
 }

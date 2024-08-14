@@ -1,8 +1,10 @@
 package com.nastya.exception;
 
 
-public class DBErrorException extends RuntimeException{
+import jakarta.servlet.http.HttpServletResponse;
+
+public class DBErrorException extends AppException{
     public DBErrorException(){
-        super("The database is unavailable");
+        super("The database is unavailable", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 }
