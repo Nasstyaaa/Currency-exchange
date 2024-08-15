@@ -33,7 +33,7 @@ public class CurrenciesServlet extends HttpServlet {
             throws IOException {
         try {
             String code = request.getParameter("code");
-            String fullName = request.getParameter("full_name");
+            String fullName = request.getParameter("name");
             String sign = request.getParameter("sign");
 
             if (code == null || code.length() > 3 || fullName == null || sign == null) {

@@ -3,6 +3,7 @@ package com.nastya.servlet.exchangerate;
 import com.nastya.dao.ExchangeRatesDAO;
 import com.nastya.exception.AppException;
 import com.nastya.exception.InvalidAddressFormatException;
+import com.nastya.exception.MissingFormFieldException;
 import com.nastya.model.ExchangeRate;
 import com.nastya.util.ResponseUtil;
 import jakarta.servlet.ServletException;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
@@ -20,14 +22,16 @@ public class ExchangeRateServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        String baseCode;
+        String targetCode;
         try {
             String pathInfo = request.getPathInfo();
-            System.out.println(pathInfo);
-            if (pathInfo.length() == 1 || pathInfo.length() > 7) {
+            if (pathInfo.length() == 7) {
+                baseCode = pathInfo.substring(1, 4);
+                targetCode = pathInfo.substring(4, 7);
+            }else {
                 throw new InvalidAddressFormatException();
             }
-            String baseCode = pathInfo.substring(1, 4);
-            String targetCode = pathInfo.substring(4, 7);
 
             ResponseUtil.send(response, HttpServletResponse.SC_OK, exchangeRatesDAO.find(baseCode, targetCode));
         } catch (AppException exception) {
@@ -41,25 +45,31 @@ public class ExchangeRateServlet extends HttpServlet {
         String method = req.getMethod();
         if (!method.equals("PATCH")) {
             super.service(req, resp);
+        }else {
+            this.doPatch(req, resp);
         }
-        this.doPatch(req, resp);
     }
 
     protected void doPatch(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        String baseCode;
+        String targetCode;
         try {
             String pathInfo = request.getPathInfo();
             String rate = request.getParameter("rate");
 
-            if (pathInfo.length() == 1 || pathInfo.length() > 7 || rate == null) {
+            if (rate == null) {
+                throw new MissingFormFieldException();
+            } else if (pathInfo.length() == 7) {
+                baseCode = pathInfo.substring(1, 4);
+                targetCode = pathInfo.substring(4, 7);
+            }else {
                 throw new InvalidAddressFormatException();
             }
-            String baseCode = pathInfo.substring(1, 4);
-            String targetCode = pathInfo.substring(4, 7);
 
             ExchangeRate exchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
             ResponseUtil.send(response, HttpServletResponse.SC_OK,
-                    exchangeRatesDAO.update(exchangeRate, Double.valueOf(rate)));
+                    exchangeRatesDAO.update(exchangeRate, BigDecimal.valueOf(Double.valueOf(rate))));
         } catch (AppException exception) {
             ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
         }

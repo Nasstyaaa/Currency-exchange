@@ -11,7 +11,7 @@ public class CurrencyBuilderUtil {
 
         currency.setId(resultSet.getInt("id"));
         currency.setCode(resultSet.getString("code"));
-        currency.setFullName(resultSet.getString("full_name"));
+        currency.setName(resultSet.getString("full_name"));
         currency.setSign(resultSet.getString("sign"));
         return currency;
     }

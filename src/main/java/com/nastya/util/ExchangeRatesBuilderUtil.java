@@ -21,7 +21,7 @@ public class ExchangeRatesBuilderUtil {
                 resultSet.getString("target_name"),
                 resultSet.getString("target_sign")));
 
-        rate.setRate(resultSet.getDouble("rate"));
+        rate.setRate(resultSet.getBigDecimal("rate"));
 
         return rate;
     }

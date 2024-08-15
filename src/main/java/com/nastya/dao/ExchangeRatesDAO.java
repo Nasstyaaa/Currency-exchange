@@ -72,11 +72,11 @@ public class ExchangeRatesDAO {
     }
 
 
-    public ExchangeRate update(ExchangeRate exchangeRate, Double rate){
+    public ExchangeRate update(ExchangeRate exchangeRate, BigDecimal rate){
         try (Connection connection = DataSourceUtil.get().getConnection()){
             PreparedStatement preparedStatement = connection.prepareStatement("UPDATE exchange_rates SET rate=?" +
                     "WHERE id=?");
-            preparedStatement.setBigDecimal(1, BigDecimal.valueOf(rate));
+            preparedStatement.setBigDecimal(1, rate);
             preparedStatement.setInt(2, exchangeRate.getId());
             try {
                 preparedStatement.executeUpdate();
@@ -93,7 +93,7 @@ public class ExchangeRatesDAO {
     }
 
 
-    public ExchangeRate save(String baseCode, String targetCode, double rate) {
+    public ExchangeRate save(String baseCode, String targetCode, BigDecimal rate) {
         try (Connection connection = DataSourceUtil.get().getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(
                     "SELECT * FROM currencies WHERE code IN (?, ?);");
@@ -117,13 +117,13 @@ public class ExchangeRatesDAO {
 
 
 
-    private ExchangeRate insertValues(Currency baseCurrency, Currency targetCurrency, double rate, Connection connection)
+    private ExchangeRate insertValues(Currency baseCurrency, Currency targetCurrency, BigDecimal rate, Connection connection)
             throws SQLException {
         PreparedStatement prStatement = connection.prepareStatement("INSERT INTO " +
                 "exchange_rates(base_currency_id, target_currency_id, rate) VALUES (?, ?, ?)");
         prStatement.setInt(1, baseCurrency.getId());
         prStatement.setInt(2, targetCurrency.getId());
-        prStatement.setBigDecimal(3, BigDecimal.valueOf(rate));
+        prStatement.setBigDecimal(3, rate);
         try {
             prStatement.executeUpdate();
         }catch (SQLException exception){

@@ -55,7 +55,7 @@ public class CurrencyDAO {
             PreparedStatement preparedStatement = connection.
                     prepareStatement("INSERT INTO currencies (code, full_name, sign) VALUES (?, ?, ?)");
             preparedStatement.setString(1, currency.getCode());
-            preparedStatement.setString(2, currency.getFullName());
+            preparedStatement.setString(2, currency.getName());
             preparedStatement.setString(3, currency.getSign());
 
             preparedStatement.executeUpdate();

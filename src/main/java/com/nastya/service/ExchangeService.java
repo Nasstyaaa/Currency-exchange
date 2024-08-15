@@ -7,12 +7,13 @@ import com.nastya.model.ExchangeRate;
 import com.nastya.util.ExchangeDTOBuilderUtil;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class ExchangeService {
     private final ExchangeRatesDAO exchangeRatesDAO = new ExchangeRatesDAO();
     private ExchangeRate exchangeRate;
 
-    public ExchangeDTO convertAmount(String baseCode, String targetCode, double amount){
+    public ExchangeDTO convertAmount(String baseCode, String targetCode, BigDecimal amount){
         try {
             exchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
 
@@ -23,9 +24,9 @@ public class ExchangeService {
 
         try {
             exchangeRate = exchangeRatesDAO.find(targetCode, baseCode);
-            BigDecimal targetRate = BigDecimal.valueOf((long) (1. / exchangeRate.getRate()), 6);
+            BigDecimal targetRate = BigDecimal.ONE.divide(exchangeRate.getRate(), 3, RoundingMode.HALF_UP);
 
-            return ExchangeDTOBuilderUtil.create(exchangeRate, amount, Double.parseDouble(targetRate));
+            return ExchangeDTOBuilderUtil.create(exchangeRate, amount, targetRate);
         }catch (ExchangeRateNotFoundException ignored){
         }
 
@@ -33,10 +34,13 @@ public class ExchangeService {
         try {
             ExchangeRate exchangeRateBase = exchangeRatesDAO.find("USD", baseCode);
             ExchangeRate exchangeRateTarget = exchangeRatesDAO.find("USD", targetCode);
-            System.out.println(exchangeRateTarget.getRate() + " " + exchangeRateBase.getRate());
-            String targetRate = String.format("%.6f",exchangeRateBase.getRate() % exchangeRateTarget.getRate());
-            System.out.println(targetRate);
-            return ExchangeDTOBuilderUtil.create(exchangeRate, amount, Double.parseDouble(targetRate));
+            exchangeRate = new ExchangeRate(0, exchangeRateBase.getTargetCurrency(),
+                    exchangeRateTarget.getTargetCurrency(),null);
+
+            BigDecimal targetRate = exchangeRateBase.getRate().divide(exchangeRateTarget.getRate(), 3,
+                    RoundingMode.HALF_UP);
+
+            return ExchangeDTOBuilderUtil.create(exchangeRate, amount, targetRate);
         }catch (ExchangeRateNotFoundException exchangeException){
             throw new ExchangeRateNotFoundException();
         }

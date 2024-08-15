@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
@@ -37,7 +38,7 @@ public class ExchangeRatesServlet extends HttpServlet {
             }
 
             ResponseUtil.send(response, HttpServletResponse.SC_CREATED,
-                    exchangeRatesDAO.save(baseCode, targetCode, Double.parseDouble(rate)));
+                    exchangeRatesDAO.save(baseCode, targetCode, BigDecimal.valueOf(Double.valueOf(rate))));
         } catch (AppException exception) {
             ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
         }

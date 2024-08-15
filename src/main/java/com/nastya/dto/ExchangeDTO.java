@@ -2,14 +2,16 @@ package com.nastya.dto;
 
 import com.nastya.model.Currency;
 
+import java.math.BigDecimal;
+
 public class ExchangeDTO {
     private Currency baseCurrency;
     private Currency targetCurrency;
-    private double rate;
-    private double amount;
-    private double convertedAmount;
+    private BigDecimal rate;
+    private BigDecimal amount;
+    private BigDecimal convertedAmount;
 
-    public ExchangeDTO(Currency baseCurrency, Currency targetCurrency, double rate, double amount, double convertedAmount) {
+    public ExchangeDTO(Currency baseCurrency, Currency targetCurrency, BigDecimal rate, BigDecimal amount, BigDecimal convertedAmount) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
         this.rate = rate;

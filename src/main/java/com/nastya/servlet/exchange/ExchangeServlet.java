@@ -2,6 +2,7 @@ package com.nastya.servlet.exchange;
 
 import com.nastya.exception.AppException;
 import com.nastya.exception.InvalidAddressFormatException;
+import com.nastya.exception.MissingFormFieldException;
 import com.nastya.service.ExchangeService;
 import com.nastya.util.ResponseUtil;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @WebServlet("/exchange")
 public class ExchangeServlet extends HttpServlet {
@@ -22,11 +24,11 @@ public class ExchangeServlet extends HttpServlet {
             String targetCode = request.getParameter("to");
             String amount = request.getParameter("amount");
             if (baseCode == null || targetCode == null || amount == null){
-                throw new InvalidAddressFormatException();
+                throw new MissingFormFieldException();
             }
 
-            ResponseUtil.send(response, HttpServletResponse.SC_OK,
-                    new ExchangeService().convertAmount(baseCode, targetCode, Double.parseDouble(amount)));
+            ResponseUtil.send(response, HttpServletResponse.SC_OK, new ExchangeService()
+                    .convertAmount(baseCode, targetCode, BigDecimal.valueOf(Long.parseLong(amount))));
 
         }catch (AppException exception){
             ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
