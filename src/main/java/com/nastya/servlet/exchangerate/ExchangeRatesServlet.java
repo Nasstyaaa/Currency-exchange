@@ -33,8 +33,12 @@ public class ExchangeRatesServlet extends HttpServlet {
             String targetCode = request.getParameter("targetCurrencyCode");
             String rate = request.getParameter("rate");
 
-            if (baseCode == null || targetCode == null || rate == null || baseCode.equals(targetCode)) {
+            if (baseCode == null || targetCode == null || rate == null) {
                 throw new MissingFormFieldException();
+            }else if(Double.valueOf(rate) <=0 || baseCode.equals(targetCode)){
+                ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST,
+                        "The form fields are filled in incorrectly");
+                return;
             }
 
             ResponseUtil.send(response, HttpServletResponse.SC_CREATED,

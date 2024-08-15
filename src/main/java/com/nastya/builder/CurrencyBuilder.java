@@ -1,11 +1,11 @@
-package com.nastya.util;
+package com.nastya.builder;
 
 import com.nastya.model.Currency;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class CurrencyBuilderUtil {
+public class CurrencyBuilder {
     public static Currency create(ResultSet resultSet) throws SQLException {
         Currency currency = new Currency();
 

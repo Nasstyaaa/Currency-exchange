@@ -12,8 +12,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
@@ -50,15 +52,26 @@ public class ExchangeRateServlet extends HttpServlet {
         }
     }
 
+    @Override
     protected void doPatch(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String baseCode;
         String targetCode;
         try {
             String pathInfo = request.getPathInfo();
-            String rate = request.getParameter("rate");
 
-            if (rate == null) {
+            StringBuilder body = new StringBuilder();
+            String line;
+            try (BufferedReader reader = request.getReader()) {
+                while ((line = reader.readLine()) != null) {
+                    body.append(line);
+                }
+            }
+            String[] requestBody = body.toString().split("=");
+            String rate = requestBody[0];
+            double rateValue = Double.valueOf(requestBody[1]);
+
+            if (!Objects.equals(rate, "rate") || rateValue <= 0) {
                 throw new MissingFormFieldException();
             } else if (pathInfo.length() == 7) {
                 baseCode = pathInfo.substring(1, 4);
@@ -69,7 +82,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
             ExchangeRate exchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
             ResponseUtil.send(response, HttpServletResponse.SC_OK,
-                    exchangeRatesDAO.update(exchangeRate, BigDecimal.valueOf(Double.valueOf(rate))));
+                    exchangeRatesDAO.update(exchangeRate, BigDecimal.valueOf(rateValue)));
         } catch (AppException exception) {
             ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
         }

@@ -23,12 +23,17 @@ public class ExchangeServlet extends HttpServlet {
             String baseCode = request.getParameter("from");
             String targetCode = request.getParameter("to");
             String amount = request.getParameter("amount");
+
             if (baseCode == null || targetCode == null || amount == null){
                 throw new MissingFormFieldException();
+            }else if (Double.valueOf(amount) <= 0){
+                ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST,
+                        "The amount cannot be zero or negative");
+                return;
             }
 
             ResponseUtil.send(response, HttpServletResponse.SC_OK, new ExchangeService()
-                    .convertAmount(baseCode, targetCode, BigDecimal.valueOf(Long.parseLong(amount))));
+                    .convertAmount(baseCode, targetCode, BigDecimal.valueOf(Double.valueOf(amount))));
 
         }catch (AppException exception){
             ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());

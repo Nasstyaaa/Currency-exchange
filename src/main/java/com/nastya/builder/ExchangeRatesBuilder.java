@@ -1,4 +1,4 @@
-package com.nastya.util;
+package com.nastya.builder;
 
 import com.nastya.model.Currency;
 import com.nastya.model.ExchangeRate;
@@ -6,7 +6,7 @@ import com.nastya.model.ExchangeRate;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class ExchangeRatesBuilderUtil {
+public class ExchangeRatesBuilder {
     public static ExchangeRate create(ResultSet resultSet) throws SQLException {
         ExchangeRate rate = new ExchangeRate();
         rate.setId(resultSet.getInt("rate_id"));

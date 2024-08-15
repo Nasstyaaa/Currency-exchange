@@ -41,6 +41,7 @@ public class CurrenciesServlet extends HttpServlet {
             } else if (code.length() > 3) {
                 ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST,
                         "The code field must consist of 3 letters");
+                return;
             }
 
             Currency createdCurrency = currencyDAO.save(new Currency(0, code, fullName, sign));

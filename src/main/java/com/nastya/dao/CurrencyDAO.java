@@ -9,7 +9,7 @@ import com.nastya.exception.CurrencyNotFoundException;
 import com.nastya.exception.DBErrorException;
 import com.nastya.model.Currency;
 import com.nastya.util.DataSourceUtil;
-import com.nastya.util.CurrencyBuilderUtil;
+import com.nastya.builder.CurrencyBuilder;
 
 public class CurrencyDAO {
     public List<Currency> findAll() {
@@ -21,7 +21,7 @@ public class CurrencyDAO {
             ResultSet resultSet = statement.executeQuery("SELECT * FROM currencies");
 
             while (resultSet.next()) {
-                currencies.add(CurrencyBuilderUtil.create(resultSet));
+                currencies.add(CurrencyBuilder.create(resultSet));
             }
             return currencies;
 
@@ -42,7 +42,7 @@ public class CurrencyDAO {
             if (!resultSet.next()) {
                 throw new CurrencyNotFoundException();
             }
-            return CurrencyBuilderUtil.create(resultSet);
+            return CurrencyBuilder.create(resultSet);
 
         } catch (SQLException exception) {
             throw new DBErrorException();

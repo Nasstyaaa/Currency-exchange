@@ -5,9 +5,9 @@ import com.nastya.exception.DuplicateCurrencyPairException;
 import com.nastya.exception.ExchangeRateNotFoundException;
 import com.nastya.exception.InvalidCurrencyPairException;
 import com.nastya.model.ExchangeRate;
-import com.nastya.util.CurrencyBuilderUtil;
+import com.nastya.builder.CurrencyBuilder;
 import com.nastya.util.DataSourceUtil;
-import com.nastya.util.ExchangeRatesBuilderUtil;
+import com.nastya.builder.ExchangeRatesBuilder;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -35,7 +35,7 @@ public class ExchangeRatesDAO {
                     "JOIN currencies AS t_c ON exchange_rates.target_currency_id = t_c.id");
 
             while (resultSet.next()) {
-                rates.add(ExchangeRatesBuilderUtil.create(resultSet));
+                rates.add(ExchangeRatesBuilder.create(resultSet));
             }
             return rates;
 
@@ -64,7 +64,7 @@ public class ExchangeRatesDAO {
             if (!resultSet.next()){
                 throw new ExchangeRateNotFoundException();
             }
-            return ExchangeRatesBuilderUtil.create(resultSet);
+            return ExchangeRatesBuilder.create(resultSet);
 
         }catch (SQLException exception){
             throw new DBErrorException();
@@ -135,11 +135,11 @@ public class ExchangeRatesDAO {
     }
 
     private List<Currency> buildCurrencyPair(String baseCode, ResultSet resultSet) throws SQLException {
-        Currency base = CurrencyBuilderUtil.create(resultSet);
+        Currency base = CurrencyBuilder.create(resultSet);
         if (!resultSet.next()){
             throw new InvalidCurrencyPairException();
         }
-        Currency target = CurrencyBuilderUtil.create(resultSet);
+        Currency target = CurrencyBuilder.create(resultSet);
 
         if(resultSet.getString("code").equals(baseCode)){
             return List.of(target, base);

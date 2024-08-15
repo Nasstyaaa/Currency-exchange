@@ -4,7 +4,7 @@ import com.nastya.dao.ExchangeRatesDAO;
 import com.nastya.dto.ExchangeDTO;
 import com.nastya.exception.ExchangeRateNotFoundException;
 import com.nastya.model.ExchangeRate;
-import com.nastya.util.ExchangeDTOBuilderUtil;
+import com.nastya.builder.ExchangeDTOBuilder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,7 +17,7 @@ public class ExchangeService {
         try {
             exchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
 
-            return ExchangeDTOBuilderUtil.create(exchangeRate, amount, exchangeRate.getRate());
+            return ExchangeDTOBuilder.create(exchangeRate, amount, exchangeRate.getRate());
         }catch (ExchangeRateNotFoundException ignored){
         }
 
@@ -26,7 +26,7 @@ public class ExchangeService {
             exchangeRate = exchangeRatesDAO.find(targetCode, baseCode);
             BigDecimal targetRate = BigDecimal.ONE.divide(exchangeRate.getRate(), 3, RoundingMode.HALF_UP);
 
-            return ExchangeDTOBuilderUtil.create(exchangeRate, amount, targetRate);
+            return ExchangeDTOBuilder.create(exchangeRate, amount, targetRate);
         }catch (ExchangeRateNotFoundException ignored){
         }
 
@@ -40,7 +40,7 @@ public class ExchangeService {
             BigDecimal targetRate = exchangeRateBase.getRate().divide(exchangeRateTarget.getRate(), 3,
                     RoundingMode.HALF_UP);
 
-            return ExchangeDTOBuilderUtil.create(exchangeRate, amount, targetRate);
+            return ExchangeDTOBuilder.create(exchangeRate, amount, targetRate);
         }catch (ExchangeRateNotFoundException exchangeException){
             throw new ExchangeRateNotFoundException();
         }

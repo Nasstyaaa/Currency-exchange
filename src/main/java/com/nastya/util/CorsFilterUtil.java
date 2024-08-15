@@ -14,14 +14,11 @@ public class CorsFilterUtil implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
 
-        HttpServletRequest request = (HttpServletRequest) servletRequest;
-        String requestOrigin = request.getHeader("Origin");
-
-        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Origin", requestOrigin);
+        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Origin", "*");
         ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Headers", "*");
         ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Methods",
-                "GET, OPTIONS, HEAD, PUT, POST, DELETE");
+                "GET, OPTIONS, PUT, POST, PATCH");
 
-        filterChain.doFilter(request, servletResponse);
+        filterChain.doFilter(servletRequest, servletResponse);
     }
 }
