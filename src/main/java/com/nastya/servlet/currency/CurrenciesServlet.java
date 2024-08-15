@@ -36,8 +36,11 @@ public class CurrenciesServlet extends HttpServlet {
             String fullName = request.getParameter("name");
             String sign = request.getParameter("sign");
 
-            if (code == null || code.length() > 3 || fullName == null || sign == null) {
+            if (code == null || fullName == null || sign == null) {
                 throw new MissingFormFieldException();
+            } else if (code.length() > 3) {
+                ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST,
+                        "The code field must consist of 3 letters");
             }
 
             Currency createdCurrency = currencyDAO.save(new Currency(0, code, fullName, sign));

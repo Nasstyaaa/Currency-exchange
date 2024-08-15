@@ -29,7 +29,7 @@ public class ExchangeRateServlet extends HttpServlet {
             if (pathInfo.length() == 7) {
                 baseCode = pathInfo.substring(1, 4);
                 targetCode = pathInfo.substring(4, 7);
-            }else {
+            } else {
                 throw new InvalidAddressFormatException();
             }
 
@@ -45,7 +45,7 @@ public class ExchangeRateServlet extends HttpServlet {
         String method = req.getMethod();
         if (!method.equals("PATCH")) {
             super.service(req, resp);
-        }else {
+        } else {
             this.doPatch(req, resp);
         }
     }
@@ -63,7 +63,7 @@ public class ExchangeRateServlet extends HttpServlet {
             } else if (pathInfo.length() == 7) {
                 baseCode = pathInfo.substring(1, 4);
                 targetCode = pathInfo.substring(4, 7);
-            }else {
+            } else {
                 throw new InvalidAddressFormatException();
             }
 
