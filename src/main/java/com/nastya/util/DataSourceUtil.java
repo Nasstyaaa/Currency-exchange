@@ -5,7 +5,6 @@ import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import org.sqlite.SQLiteDataSource;
 
-import java.sql.Connection;
 
 @WebListener
 public class DataSourceUtil implements ServletContextListener {
