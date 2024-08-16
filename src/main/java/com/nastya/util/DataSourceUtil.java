@@ -5,11 +5,15 @@ import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import org.sqlite.SQLiteDataSource;
 
+import java.io.File;
+import java.io.InputStream;
+
 
 @WebListener
 public class DataSourceUtil implements ServletContextListener {
 
-    private static final String url = "jdbc:sqlite:C:\\Users\\Anna\\IdeaProjects\\CurrencyExchange\\currency_exchange.sqlite";
+    static File file = new File(DataSourceUtil.class.getClassLoader().getResource("currency_exchange.sqlite").getFile());
+    private static final String url = "jdbc:sqlite:" + file.getAbsolutePath();
     private static final SQLiteDataSource ds = new SQLiteDataSource();
 
     @Override
