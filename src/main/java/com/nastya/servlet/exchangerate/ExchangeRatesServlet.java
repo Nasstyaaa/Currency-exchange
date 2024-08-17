@@ -36,11 +36,9 @@ public class ExchangeRatesServlet extends HttpServlet {
             String targetCode = request.getParameter("targetCurrencyCode");
             String rate = request.getParameter("rate");
 
-            if (baseCode == null || targetCode == null || rate == null) {
+            if (rate.trim().isEmpty() || baseCode.equals(targetCode)) {
                 throw new MissingFormFieldException();
-            } else if (rate.trim().isEmpty() || baseCode.equals(targetCode)) {
-                throw new IncorrectDataRequestException();
-            } else if (Double.valueOf(rate) <= 0) {
+            }else if (Double.valueOf(rate) <= 0 || !rate.matches("^[0-9]*[1-9][0-9]*$")) {
                 throw new IncorrectDataRequestException();
             }
 

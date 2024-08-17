@@ -39,11 +39,11 @@ public class CurrenciesServlet extends HttpServlet {
             String fullName = request.getParameter("name");
             String sign = request.getParameter("sign");
 
-            if (code == null || fullName == null || sign == null) {
+            if (code.trim().isEmpty() || fullName.trim().isEmpty() || sign.trim().isEmpty()) {
                 throw new MissingFormFieldException();
-            } else if (code.trim().isEmpty() || fullName.trim().isEmpty() || sign.trim().isEmpty()) {
-                throw new IncorrectDataRequestException();
             } else if (code.length() != 3) {
+                throw new IncorrectDataRequestException();
+            } else if (!code.matches("^[A-Za-z]+$") || !fullName.matches("^[A-Za-z\\s]+$")) {
                 throw new IncorrectDataRequestException();
             }
 

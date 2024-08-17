@@ -28,11 +28,9 @@ public class ExchangeServlet extends HttpServlet {
             String targetCode = request.getParameter("to");
             String amount = request.getParameter("amount");
 
-            if (baseCode == null || targetCode == null || amount == null) {
+            if ((baseCode.trim().isEmpty() || targetCode.trim().isEmpty() || amount.trim().isEmpty())) {
                 throw new MissingFormFieldException();
-            } else if (baseCode.trim().isEmpty() || targetCode.trim().isEmpty() || amount.trim().isEmpty()) {
-                throw new IncorrectDataRequestException();
-            } else if (Double.valueOf(amount) <= 0) {
+            }else if (!amount.matches("^[0-9]*[1-9][0-9]*$") || Double.valueOf(amount) <= 0) {
                 throw new IncorrectDataRequestException();
             }
 

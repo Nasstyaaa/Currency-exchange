@@ -73,9 +73,9 @@ public class ExchangeRateServlet extends HttpServlet {
             String rate = requestBody[0];
             String rateValue = requestBody[1];
 
-            if (!Objects.equals(rate, "rate")) {
+            if (!Objects.equals(rate, "rate") || rateValue.trim().isEmpty()) {
                 throw new MissingFormFieldException();
-            } else if (Double.parseDouble(rateValue) <= 0 ||rateValue.trim().isEmpty()) {
+            } else if (Double.parseDouble(rateValue) <= 0 || !rateValue.matches("^[0-9]*[1-9][0-9]*$")){
                 throw new IncorrectDataRequestException();
             } else if (pathInfo.length() != 7) {
                 throw new InvalidAddressFormatException();
