@@ -3,7 +3,7 @@ package com.nastya.model;
 import java.math.BigDecimal;
 
 public class ExchangeRate {
-    private int id;
+    private Integer id;
     private Currency baseCurrency;
     private Currency targetCurrency;
     private BigDecimal rate;

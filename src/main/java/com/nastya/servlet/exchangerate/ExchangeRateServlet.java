@@ -1,7 +1,8 @@
 package com.nastya.servlet.exchangerate;
 
-import com.nastya.dao.ExchangeRatesDAO;
+import com.nastya.dao.ExchangeRateDAO;
 import com.nastya.exception.AppException;
+import com.nastya.exception.IncorrectDataRequestException;
 import com.nastya.exception.InvalidAddressFormatException;
 import com.nastya.exception.MissingFormFieldException;
 import com.nastya.model.ExchangeRate;
@@ -19,7 +20,7 @@ import java.util.Objects;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
-    private final ExchangeRatesDAO exchangeRatesDAO = new ExchangeRatesDAO();
+    private final ExchangeRateDAO exchangeRatesDAO = new ExchangeRateDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -35,9 +36,10 @@ public class ExchangeRateServlet extends HttpServlet {
                 throw new InvalidAddressFormatException();
             }
 
-            ResponseUtil.send(response, HttpServletResponse.SC_OK, exchangeRatesDAO.find(baseCode, targetCode));
+            ExchangeRate exchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
+            ResponseUtil.send(response, HttpServletResponse.SC_OK, exchangeRate);
         } catch (AppException exception) {
-            ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
+            ResponseUtil.sendException(response, exception);
         }
     }
 
@@ -69,22 +71,24 @@ public class ExchangeRateServlet extends HttpServlet {
             }
             String[] requestBody = body.toString().split("=");
             String rate = requestBody[0];
-            double rateValue = Double.valueOf(requestBody[1]);
+            String rateValue = requestBody[1];
 
-            if (!Objects.equals(rate, "rate") || rateValue <= 0) {
+            if (!Objects.equals(rate, "rate")) {
                 throw new MissingFormFieldException();
-            } else if (pathInfo.length() == 7) {
-                baseCode = pathInfo.substring(1, 4);
-                targetCode = pathInfo.substring(4, 7);
-            } else {
+            } else if (Double.parseDouble(rateValue) <= 0 ||rateValue.trim().isEmpty()) {
+                throw new IncorrectDataRequestException();
+            } else if (pathInfo.length() != 7) {
                 throw new InvalidAddressFormatException();
             }
 
-            ExchangeRate exchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
-            ResponseUtil.send(response, HttpServletResponse.SC_OK,
-                    exchangeRatesDAO.update(exchangeRate, BigDecimal.valueOf(rateValue)));
+            baseCode = pathInfo.substring(1, 4);
+            targetCode = pathInfo.substring(4, 7);
+
+            ExchangeRate foundExchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
+            ExchangeRate exchangeRate = exchangeRatesDAO.update(foundExchangeRate, new BigDecimal(rateValue));
+            ResponseUtil.send(response, HttpServletResponse.SC_OK, exchangeRate);
         } catch (AppException exception) {
-            ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
+            ResponseUtil.sendException(response, exception);
         }
     }
 }

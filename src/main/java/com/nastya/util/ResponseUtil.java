@@ -1,6 +1,7 @@
 package com.nastya.util;
 
 import com.google.gson.Gson;
+import com.nastya.exception.AppException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
@@ -10,13 +11,13 @@ import java.util.Map;
 public class ResponseUtil {
     private static final Gson gson = new Gson();
 
-    public static void sendException(HttpServletResponse response, int status, String message)
+    public static void sendException(HttpServletResponse response, AppException exception)
             throws IOException {
 
         Map<String, String> errorMap = new HashMap<>();
-        errorMap.put("message", message);
+        errorMap.put("message", exception.getMessage());
 
-        send(response, status, errorMap);
+        send(response, exception.getStatus(), errorMap);
     }
 
     public static void send(HttpServletResponse response, int status, Object object) throws IOException {

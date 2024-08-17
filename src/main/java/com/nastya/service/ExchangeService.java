@@ -1,46 +1,47 @@
 package com.nastya.service;
 
-import com.nastya.dao.ExchangeRatesDAO;
+import com.nastya.dao.ExchangeRateDAO;
 import com.nastya.dto.ExchangeDTO;
+import com.nastya.dto.ExchangeRequestDTO;
 import com.nastya.exception.ExchangeRateNotFoundException;
 import com.nastya.model.ExchangeRate;
-import com.nastya.builder.ExchangeDTOBuilder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 public class ExchangeService {
-    private final ExchangeRatesDAO exchangeRatesDAO = new ExchangeRatesDAO();
-    private ExchangeRate exchangeRate;
+    private final ExchangeRateDAO exchangeRatesDAO = new ExchangeRateDAO();
 
-    public ExchangeDTO convertAmount(String baseCode, String targetCode, BigDecimal amount){
+    public ExchangeDTO convertAmount(ExchangeRequestDTO exchangeRequestDTO){
         try {
-            exchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
+            ExchangeRate exchangeRate = exchangeRatesDAO.find(exchangeRequestDTO.getBaseCode(),
+                    exchangeRequestDTO.getTargetCode());
 
-            return ExchangeDTOBuilder.create(exchangeRate, amount, exchangeRate.getRate());
+            return new ExchangeDTO(exchangeRate, exchangeRequestDTO.getAmount(), exchangeRate.getRate());
         }catch (ExchangeRateNotFoundException ignored){
         }
 
 
         try {
-            exchangeRate = exchangeRatesDAO.find(targetCode, baseCode);
-            BigDecimal targetRate = BigDecimal.ONE.divide(exchangeRate.getRate(), 3, RoundingMode.HALF_UP);
+            ExchangeRate exchangeRate = exchangeRatesDAO.find(exchangeRequestDTO.getTargetCode(),
+                    exchangeRequestDTO.getBaseCode());
+            BigDecimal targetRate = BigDecimal.ONE.divide(exchangeRate.getRate(), 2, RoundingMode.HALF_UP);
 
-            return ExchangeDTOBuilder.create(exchangeRate, amount, targetRate);
+            return new ExchangeDTO(exchangeRate, exchangeRequestDTO.getAmount(), targetRate);
         }catch (ExchangeRateNotFoundException ignored){
         }
 
 
         try {
-            ExchangeRate exchangeRateBase = exchangeRatesDAO.find("USD", baseCode);
-            ExchangeRate exchangeRateTarget = exchangeRatesDAO.find("USD", targetCode);
-            exchangeRate = new ExchangeRate(0, exchangeRateBase.getTargetCurrency(),
+            ExchangeRate exchangeRateBase = exchangeRatesDAO.find("USD", exchangeRequestDTO.getBaseCode());
+            ExchangeRate exchangeRateTarget = exchangeRatesDAO.find("USD", exchangeRequestDTO.getTargetCode());
+            ExchangeRate exchangeRate = new ExchangeRate(0, exchangeRateBase.getTargetCurrency(),
                     exchangeRateTarget.getTargetCurrency(),null);
 
-            BigDecimal targetRate = exchangeRateBase.getRate().divide(exchangeRateTarget.getRate(), 3,
+            BigDecimal targetRate = exchangeRateBase.getRate().divide(exchangeRateTarget.getRate(), 2,
                     RoundingMode.HALF_UP);
 
-            return ExchangeDTOBuilder.create(exchangeRate, amount, targetRate);
+            return new ExchangeDTO(exchangeRate, exchangeRequestDTO.getAmount(), targetRate);
         }catch (ExchangeRateNotFoundException exchangeException){
             throw new ExchangeRateNotFoundException();
         }

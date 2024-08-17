@@ -3,6 +3,7 @@ package com.nastya.servlet.currency;
 
 import com.nastya.dao.CurrencyDAO;
 import com.nastya.exception.AppException;
+import com.nastya.exception.IncorrectDataRequestException;
 import com.nastya.exception.MissingFormFieldException;
 import com.nastya.model.Currency;
 import com.nastya.util.ResponseUtil;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
@@ -22,9 +24,10 @@ public class CurrenciesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         try {
-            ResponseUtil.send(response, HttpServletResponse.SC_OK, currencyDAO.findAll());
+            List<Currency> currencies = currencyDAO.findAll();
+            ResponseUtil.send(response, HttpServletResponse.SC_OK, currencies);
         } catch (AppException exception) {
-            ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
+            ResponseUtil.sendException(response, exception);
         }
     }
 
@@ -38,16 +41,16 @@ public class CurrenciesServlet extends HttpServlet {
 
             if (code == null || fullName == null || sign == null) {
                 throw new MissingFormFieldException();
-            } else if (code.length() > 3) {
-                ResponseUtil.sendException(response, HttpServletResponse.SC_BAD_REQUEST,
-                        "The code field must consist of 3 letters");
-                return;
+            } else if (code.trim().isEmpty() || fullName.trim().isEmpty() || sign.trim().isEmpty()) {
+                throw new IncorrectDataRequestException();
+            } else if (code.length() != 3) {
+                throw new IncorrectDataRequestException();
             }
 
-            Currency createdCurrency = currencyDAO.save(new Currency(0, code, fullName, sign));
+            Currency createdCurrency = currencyDAO.save(new Currency(null, code, fullName, sign));
             ResponseUtil.send(response, HttpServletResponse.SC_CREATED, createdCurrency);
         } catch (AppException exception) {
-            ResponseUtil.sendException(response, exception.getStatus(), exception.getMessage());
+            ResponseUtil.sendException(response, exception);
         }
     }
 }

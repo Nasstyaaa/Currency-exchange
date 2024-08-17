@@ -5,9 +5,8 @@ import com.nastya.exception.DuplicateCurrencyPairException;
 import com.nastya.exception.ExchangeRateNotFoundException;
 import com.nastya.exception.InvalidCurrencyPairException;
 import com.nastya.model.ExchangeRate;
-import com.nastya.builder.CurrencyBuilder;
+import com.nastya.util.BuilderUtil;
 import com.nastya.util.DataSourceUtil;
-import com.nastya.builder.ExchangeRatesBuilder;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -17,12 +16,12 @@ import com.nastya.model.Currency;
 
 import java.util.List;
 
-public class ExchangeRatesDAO {
+public class ExchangeRateDAO {
 
     public List<ExchangeRate> findAll() {
         List<ExchangeRate> rates = new ArrayList<>();
 
-        try (Connection connection = DataSourceUtil.get().getConnection()) {
+        try (Connection connection = DataSourceUtil.getConnection()) {
 
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT exchange_rates.id AS rate_id, exchange_rates.rate," +
@@ -35,7 +34,7 @@ public class ExchangeRatesDAO {
                     "JOIN currencies AS t_c ON exchange_rates.target_currency_id = t_c.id");
 
             while (resultSet.next()) {
-                rates.add(ExchangeRatesBuilder.create(resultSet));
+                rates.add(BuilderUtil.createExchangeRate(resultSet));
             }
             return rates;
 
@@ -46,7 +45,7 @@ public class ExchangeRatesDAO {
 
 
     public ExchangeRate find(String baseCode, String targetCode){
-        try(Connection connection = DataSourceUtil.get().getConnection()) {
+        try(Connection connection = DataSourceUtil.getConnection()) {
             PreparedStatement preparedStatement =
                     connection.prepareStatement("SELECT exchange_rates.id AS rate_id, exchange_rates.rate,\n" +
                             "b_c.id AS base_id, b_c.code AS base_code, " +
@@ -64,7 +63,7 @@ public class ExchangeRatesDAO {
             if (!resultSet.next()){
                 throw new ExchangeRateNotFoundException();
             }
-            return ExchangeRatesBuilder.create(resultSet);
+            return BuilderUtil.createExchangeRate(resultSet);
 
         }catch (SQLException exception){
             throw new DBErrorException();
@@ -73,7 +72,7 @@ public class ExchangeRatesDAO {
 
 
     public ExchangeRate update(ExchangeRate exchangeRate, BigDecimal rate){
-        try (Connection connection = DataSourceUtil.get().getConnection()){
+        try (Connection connection = DataSourceUtil.getConnection()){
             PreparedStatement preparedStatement = connection.prepareStatement("UPDATE exchange_rates SET rate=?" +
                     "WHERE id=?");
             preparedStatement.setBigDecimal(1, rate);
@@ -81,7 +80,6 @@ public class ExchangeRatesDAO {
             try {
                 preparedStatement.executeUpdate();
             }catch (SQLException exception){
-                System.out.println(exception.getErrorCode());
                 throw new ExchangeRateNotFoundException();
             }
             exchangeRate.setRate(rate);
@@ -94,7 +92,7 @@ public class ExchangeRatesDAO {
 
 
     public ExchangeRate save(String baseCode, String targetCode, BigDecimal rate) {
-        try (Connection connection = DataSourceUtil.get().getConnection()) {
+        try (Connection connection = DataSourceUtil.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(
                     "SELECT * FROM currencies WHERE code IN (?, ?);");
             preparedStatement.setString(1, baseCode);
@@ -135,11 +133,11 @@ public class ExchangeRatesDAO {
     }
 
     private List<Currency> buildCurrencyPair(String baseCode, ResultSet resultSet) throws SQLException {
-        Currency base = CurrencyBuilder.create(resultSet);
+        Currency base = BuilderUtil.createCurrency(resultSet);
         if (!resultSet.next()){
             throw new InvalidCurrencyPairException();
         }
-        Currency target = CurrencyBuilder.create(resultSet);
+        Currency target = BuilderUtil.createCurrency(resultSet);
 
         if(resultSet.getString("code").equals(baseCode)){
             return List.of(target, base);

@@ -6,7 +6,8 @@ import jakarta.servlet.annotation.WebListener;
 import org.sqlite.SQLiteDataSource;
 
 import java.io.File;
-import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 
 @WebListener
@@ -21,7 +22,7 @@ public class DataSourceUtil implements ServletContextListener {
         ds.setUrl(url);
     }
 
-    public static SQLiteDataSource get(){
-        return ds;
+    public static Connection getConnection() throws SQLException {
+        return ds.getConnection();
     }
 }

@@ -1,7 +1,7 @@
 package com.nastya.model;
 
 public class Currency {
-    private int id;
+    private Integer id;
     private String name;
     private String code;
     private String sign;
@@ -10,7 +10,7 @@ public class Currency {
     public Currency() {
     }
 
-    public Currency(int id, String code, String fullName, String sign) {
+    public Currency(Integer id, String code, String fullName, String sign) {
         this.id = id;
         this.code = code;
         this.name = fullName;
@@ -33,7 +33,7 @@ public class Currency {
         return sign;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

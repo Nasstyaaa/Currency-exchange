@@ -8,20 +8,22 @@ import com.nastya.exception.CurrencyCodeExistsException;
 import com.nastya.exception.CurrencyNotFoundException;
 import com.nastya.exception.DBErrorException;
 import com.nastya.model.Currency;
+import com.nastya.util.BuilderUtil;
 import com.nastya.util.DataSourceUtil;
-import com.nastya.builder.CurrencyBuilder;
 
 public class CurrencyDAO {
+    private static final int NOT_UNIQUE_VALUE_EXCEPTION = 19;
+
     public List<Currency> findAll() {
         List<Currency> currencies = new ArrayList<>();
 
-        try (Connection connection = DataSourceUtil.get().getConnection()) {
+        try (Connection connection = DataSourceUtil.getConnection()) {
 
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM currencies");
 
             while (resultSet.next()) {
-                currencies.add(CurrencyBuilder.create(resultSet));
+                currencies.add(BuilderUtil.createCurrency(resultSet));
             }
             return currencies;
 
@@ -32,7 +34,7 @@ public class CurrencyDAO {
 
 
     public Currency find(String code) {
-        try (Connection connection = DataSourceUtil.get().getConnection()) {
+        try (Connection connection = DataSourceUtil.getConnection()) {
             PreparedStatement preparedStatement =
                     connection.prepareStatement("SELECT * FROM currencies WHERE code=?");
 
@@ -42,7 +44,7 @@ public class CurrencyDAO {
             if (!resultSet.next()) {
                 throw new CurrencyNotFoundException();
             }
-            return CurrencyBuilder.create(resultSet);
+            return BuilderUtil.createCurrency(resultSet);
 
         } catch (SQLException exception) {
             throw new DBErrorException();
@@ -51,7 +53,7 @@ public class CurrencyDAO {
 
 
     public Currency save(Currency currency) {
-        try (Connection connection = DataSourceUtil.get().getConnection()) {
+        try (Connection connection = DataSourceUtil.getConnection()) {
             PreparedStatement preparedStatement = connection.
                     prepareStatement("INSERT INTO currencies (code, full_name, sign) VALUES (?, ?, ?)");
             preparedStatement.setString(1, currency.getCode());
@@ -66,7 +68,7 @@ public class CurrencyDAO {
             return currency;
 
         } catch (SQLException exception) {
-            if (exception.getErrorCode() == 19) {
+            if (exception.getErrorCode() == NOT_UNIQUE_VALUE_EXCEPTION) {
                 throw new CurrencyCodeExistsException();
             }
             throw new DBErrorException();
