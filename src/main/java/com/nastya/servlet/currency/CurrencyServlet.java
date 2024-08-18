@@ -23,11 +23,10 @@ public class CurrencyServlet extends HttpServlet {
         String code;
         try {
             String pathInfo = request.getPathInfo();
-            if (pathInfo.length() == 4) {
-                code = pathInfo.substring(1);
-            } else {
+            if (pathInfo.length() != 4) {
                 throw new InvalidAddressFormatException();
             }
+            code = pathInfo.substring(1);
 
             Currency currency = currencyDAO.find(code);
             ResponseUtil.send(response, HttpServletResponse.SC_OK, currency);

@@ -1,7 +1,9 @@
 package com.nastya.servlet.exchangerate;
 
+import com.nastya.dao.CurrencyDAO;
 import com.nastya.dao.ExchangeRateDAO;
 import com.nastya.exception.*;
+import com.nastya.model.Currency;
 import com.nastya.model.ExchangeRate;
 import com.nastya.util.ResponseUtil;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,6 +18,7 @@ import java.util.List;
 @WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
     private final ExchangeRateDAO exchangeRatesDAO = new ExchangeRateDAO();
+    private final CurrencyDAO currencyDAO = new CurrencyDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -38,14 +41,19 @@ public class ExchangeRatesServlet extends HttpServlet {
 
             if (rate.trim().isEmpty() || baseCode.equals(targetCode)) {
                 throw new MissingFormFieldException();
-            }else if (Double.valueOf(rate) <= 0 || !rate.matches("^[0-9]*[1-9][0-9]*$")) {
+            }else if (Double.valueOf(rate) <= 0) {
                 throw new IncorrectDataRequestException();
             }
 
-            ExchangeRate exchangeRate = exchangeRatesDAO.save(baseCode, targetCode, new BigDecimal(rate));
+            Currency baseCurrency = currencyDAO.find(baseCode);
+            Currency targetCurrency = currencyDAO.find(targetCode);
+            ExchangeRate exchangeRate =
+                    exchangeRatesDAO.save(baseCurrency, targetCurrency, new BigDecimal(rate));
             ResponseUtil.send(response, HttpServletResponse.SC_CREATED, exchangeRate);
         } catch (AppException exception) {
             ResponseUtil.sendException(response, exception);
+        } catch (NumberFormatException e){
+            ResponseUtil.sendException(response, new IncorrectDataRequestException());
         }
     }
 }

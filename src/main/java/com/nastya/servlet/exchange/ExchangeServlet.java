@@ -30,16 +30,18 @@ public class ExchangeServlet extends HttpServlet {
 
             if ((baseCode.trim().isEmpty() || targetCode.trim().isEmpty() || amount.trim().isEmpty())) {
                 throw new MissingFormFieldException();
-            }else if (!amount.matches("^[0-9]*[1-9][0-9]*$") || Double.valueOf(amount) <= 0) {
+            } else if (Double.valueOf(amount) <= 0) {
                 throw new IncorrectDataRequestException();
             }
 
-            ExchangeDTO exchangeDTO = exchangeService.
-                    convertAmount(new ExchangeRequestDTO(baseCode, targetCode, new BigDecimal(amount)));
+            ExchangeDTO exchangeDTO = exchangeService.convertAmount(
+                    new ExchangeRequestDTO(baseCode, targetCode, new BigDecimal(amount)));
             ResponseUtil.send(response, HttpServletResponse.SC_OK, exchangeDTO);
 
         } catch (AppException exception) {
             ResponseUtil.sendException(response, exception);
+        } catch (NumberFormatException e) {
+            ResponseUtil.sendException(response, new IncorrectDataRequestException());
         }
     }
 }

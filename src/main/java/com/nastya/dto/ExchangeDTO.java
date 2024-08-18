@@ -13,9 +13,7 @@ public class ExchangeDTO {
     private BigDecimal amount;
     private BigDecimal convertedAmount;
 
-    public ExchangeDTO(ExchangeRate exchangeRate, BigDecimal amount, BigDecimal targetRate){
-        BigDecimal convertedAmount =  targetRate.multiply(amount).setScale(2, RoundingMode.HALF_UP);
-
+    public ExchangeDTO(ExchangeRate exchangeRate, BigDecimal amount, BigDecimal targetRate,  BigDecimal convertedAmount){
         this.baseCurrency = exchangeRate.getBaseCurrency();
         this.targetCurrency = exchangeRate.getTargetCurrency();
         this.rate = targetRate;

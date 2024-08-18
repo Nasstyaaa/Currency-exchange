@@ -24,14 +24,13 @@ public class ExchangeRateDAO {
         try (Connection connection = DataSourceUtil.getConnection()) {
 
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT exchange_rates.id AS rate_id, exchange_rates.rate," +
-                    "b_c.id AS base_id, b_c.code AS base_code, " +
-                    "b_c.full_name AS base_name, b_c.sign AS base_sign," +
-                    "t_c.id AS target_id, t_c.code AS target_code, " +
-                    "t_c.full_name AS target_name, t_c.sign AS target_sign " +
-                    "FROM exchange_rates " +
-                    "JOIN currencies AS b_c ON exchange_rates.base_currency_id = b_c.id " +
-                    "JOIN currencies AS t_c ON exchange_rates.target_currency_id = t_c.id");
+            ResultSet resultSet = statement.executeQuery("""
+                    SELECT exchange_rates.id AS rate_id, exchange_rates.rate,
+                    b_c.id AS base_id, b_c.code AS base_code,b_c.full_name AS base_name, b_c.sign AS base_sign,
+                    t_c.id AS target_id, t_c.code AS target_code, t_c.full_name AS target_name, t_c.sign AS target_sign
+                    FROM exchange_rates
+                    JOIN currencies AS b_c ON exchange_rates.base_currency_id = b_c.id
+                    JOIN currencies AS t_c ON exchange_rates.target_currency_id = t_c.id""");
 
             while (resultSet.next()) {
                 rates.add(BuilderUtil.createExchangeRate(resultSet));
@@ -46,16 +45,15 @@ public class ExchangeRateDAO {
 
     public ExchangeRate find(String baseCode, String targetCode){
         try(Connection connection = DataSourceUtil.getConnection()) {
-            PreparedStatement preparedStatement =
-                    connection.prepareStatement("SELECT exchange_rates.id AS rate_id, exchange_rates.rate,\n" +
-                            "b_c.id AS base_id, b_c.code AS base_code, " +
-                            "b_c.full_name AS base_name, b_c.sign AS base_sign, " +
-                            "t_c.id AS target_id, t_c.code AS target_code, " +
-                            "t_c.full_name AS target_name, t_c.sign AS target_sign " +
-                            "FROM exchange_rates " +
-                            "JOIN currencies AS b_c ON exchange_rates.base_currency_id = b_c.id " +
-                            "JOIN currencies AS t_c ON exchange_rates.target_currency_id = t_c.id " +
-                            "WHERE b_c.code = ? AND t_c.code = ?;");
+            PreparedStatement preparedStatement = connection.prepareStatement("""
+                    SELECT exchange_rates.id AS rate_id, exchange_rates.rate,
+                    b_c.id AS base_id, b_c.code AS base_code, b_c.full_name AS base_name, b_c.sign AS base_sign,
+                    t_c.id AS target_id, t_c.code AS target_code, t_c.full_name AS target_name, t_c.sign AS target_sign
+                    FROM exchange_rates
+                    JOIN currencies AS b_c ON exchange_rates.base_currency_id = b_c.id
+                    JOIN currencies AS t_c ON exchange_rates.target_currency_id = t_c.id
+                    WHERE b_c.code = ? AND t_c.code = ?""");
+
             preparedStatement.setString(1, baseCode);
             preparedStatement.setString(2, targetCode);
 
@@ -73,8 +71,8 @@ public class ExchangeRateDAO {
 
     public ExchangeRate update(ExchangeRate exchangeRate, BigDecimal rate){
         try (Connection connection = DataSourceUtil.getConnection()){
-            PreparedStatement preparedStatement = connection.prepareStatement("UPDATE exchange_rates SET rate=?" +
-                    "WHERE id=?");
+            PreparedStatement preparedStatement = connection.prepareStatement("""
+                    UPDATE exchange_rates SET rate=? WHERE id=?""");
             preparedStatement.setBigDecimal(1, rate);
             preparedStatement.setInt(2, exchangeRate.getId());
             try {
@@ -91,58 +89,26 @@ public class ExchangeRateDAO {
     }
 
 
-    public ExchangeRate save(String baseCode, String targetCode, BigDecimal rate) {
+    public ExchangeRate save(Currency baseCurrency, Currency targetCurrency, BigDecimal rate) {
         try (Connection connection = DataSourceUtil.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM currencies WHERE code IN (?, ?);");
-            preparedStatement.setString(1, baseCode);
-            preparedStatement.setString(2, targetCode);
+            PreparedStatement prStatement = connection.prepareStatement("""
+                        INSERT INTO exchange_rates(base_currency_id, target_currency_id, rate) VALUES (?, ?, ?);
+                        """);
+            prStatement.setInt(1, baseCurrency.getId());
+            prStatement.setInt(2, targetCurrency.getId());
+            prStatement.setBigDecimal(3, rate);
 
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (!resultSet.next()) {
-                throw new InvalidCurrencyPairException();
+            try {
+                prStatement.executeUpdate();
+            }catch (SQLException exception){
+                throw new DuplicateCurrencyPairException();
             }
 
-            List<Currency> currencies = buildCurrencyPair(baseCode, resultSet);
-            Currency baseCurrency = currencies.get(0);
-            Currency targetCurrency = currencies.get(1);
+            ResultSet generatedKeys = prStatement.getGeneratedKeys();
+            return new ExchangeRate(generatedKeys.getInt(1), baseCurrency, targetCurrency, rate);
 
-            return insertValues(baseCurrency, targetCurrency, rate, connection);
         } catch (SQLException exception) {
             throw new DBErrorException();
-        }
-    }
-
-
-
-    private ExchangeRate insertValues(Currency baseCurrency, Currency targetCurrency, BigDecimal rate, Connection connection)
-            throws SQLException {
-        PreparedStatement prStatement = connection.prepareStatement("INSERT INTO " +
-                "exchange_rates(base_currency_id, target_currency_id, rate) VALUES (?, ?, ?)");
-        prStatement.setInt(1, baseCurrency.getId());
-        prStatement.setInt(2, targetCurrency.getId());
-        prStatement.setBigDecimal(3, rate);
-        try {
-            prStatement.executeUpdate();
-        }catch (SQLException exception){
-            throw new DuplicateCurrencyPairException();
-        }
-
-        ResultSet generatedKeys = prStatement.getGeneratedKeys();
-        return new ExchangeRate(generatedKeys.getInt(1), baseCurrency, targetCurrency, rate);
-    }
-
-    private List<Currency> buildCurrencyPair(String baseCode, ResultSet resultSet) throws SQLException {
-        Currency base = BuilderUtil.createCurrency(resultSet);
-        if (!resultSet.next()){
-            throw new InvalidCurrencyPairException();
-        }
-        Currency target = BuilderUtil.createCurrency(resultSet);
-
-        if(resultSet.getString("code").equals(baseCode)){
-            return List.of(target, base);
-        }else {
-            return List.of(base, target);
         }
     }
 }

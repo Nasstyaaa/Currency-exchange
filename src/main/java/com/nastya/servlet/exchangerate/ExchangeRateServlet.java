@@ -29,12 +29,11 @@ public class ExchangeRateServlet extends HttpServlet {
         String targetCode;
         try {
             String pathInfo = request.getPathInfo();
-            if (pathInfo.length() == 7) {
-                baseCode = pathInfo.substring(1, 4);
-                targetCode = pathInfo.substring(4, 7);
-            } else {
+            if (pathInfo.length() != 7) {
                 throw new InvalidAddressFormatException();
             }
+            baseCode = pathInfo.substring(1, 4);
+            targetCode = pathInfo.substring(4, 7);
 
             ExchangeRate exchangeRate = exchangeRatesDAO.find(baseCode, targetCode);
             ResponseUtil.send(response, HttpServletResponse.SC_OK, exchangeRate);
@@ -75,7 +74,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
             if (!Objects.equals(rate, "rate") || rateValue.trim().isEmpty()) {
                 throw new MissingFormFieldException();
-            } else if (Double.parseDouble(rateValue) <= 0 || !rateValue.matches("^[0-9]*[1-9][0-9]*$")){
+            } else if (Double.parseDouble(rateValue) <= 0) {
                 throw new IncorrectDataRequestException();
             } else if (pathInfo.length() != 7) {
                 throw new InvalidAddressFormatException();
@@ -89,6 +88,8 @@ public class ExchangeRateServlet extends HttpServlet {
             ResponseUtil.send(response, HttpServletResponse.SC_OK, exchangeRate);
         } catch (AppException exception) {
             ResponseUtil.sendException(response, exception);
+        } catch (NumberFormatException e) {
+            ResponseUtil.sendException(response, new IncorrectDataRequestException());
         }
     }
 }

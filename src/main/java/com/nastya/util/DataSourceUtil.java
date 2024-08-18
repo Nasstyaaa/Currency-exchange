@@ -13,8 +13,7 @@ import java.sql.SQLException;
 @WebListener
 public class DataSourceUtil implements ServletContextListener {
 
-    static File file = new File(DataSourceUtil.class.getClassLoader().getResource("currency_exchange.sqlite").getFile());
-    private static final String url = "jdbc:sqlite:" + file.getAbsolutePath();
+    private static final String url = "jdbc:sqlite::resource:currency_exchange.sqlite";
     private static final SQLiteDataSource ds = new SQLiteDataSource();
 
     @Override

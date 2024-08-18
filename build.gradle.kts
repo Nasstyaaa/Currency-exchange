@@ -16,6 +16,11 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_18
+    targetCompatibility = JavaVersion.VERSION_18
+}
+
 tasks.withType<War> {
     archiveFileName.set("${project.name}.war")
 }
